@@ -158,12 +158,14 @@ func Prep(t Helper) *Finder {
 
 func TestBBox(t *testing.T) {
 	pg := Prep(t)
+	pg.Sort()
 	pt := Pair{AlaLon, AlaLat}
-	id := pg.Search(pt)
+	id, dist := pg.Search(pt)
 	if id < 0 {
 		t.Fatal("not found")
 	}
-	t.Logf("ID: %d", id)
+	t.Logf("poly search size: %d", pg.sorted.Size())
+	t.Logf("ID: %d DIST: %f", id, dist)
 }
 
 func BenchmarkBBox(b *testing.B) {

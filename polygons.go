@@ -3,9 +3,16 @@ package polygons
 import (
 	"log"
 	"math"
+	"sort"
+	"unsafe"
+
+	"github.com/paulstuart/geo"
 
 	"github.com/tidwall/rtree"
 )
+
+type Point = geo.Point
+type GeoType = geo.GeoType
 
 // Finder is a collection polygons with associated integer ids
 // The ids do not have to be unique (multiple polygons can share an id)
@@ -13,9 +20,10 @@ import (
 // an RTree of bounding boxes, and then searching candidates within
 // matching bounding boxes
 type Finder struct {
-	tree  rtree.RTree
-	polys []PPoints
-	ids   map[int]int // key is the polygon index, value is the id
+	tree   rtree.RTree
+	polys  []PPoints
+	ids    map[int]int // key is the polygon index, value is the id
+	sorted PolyPoints
 }
 
 // NewFinder returns a Finder for finding a containing polygon
@@ -23,6 +31,25 @@ func NewFinder() *Finder {
 	return &Finder{
 		ids: make(map[int]int),
 	}
+}
+
+func (py *Finder) Sort() {
+	var size int
+	for _, pp := range py.polys {
+		size += len(pp)
+	}
+	py.sorted = make(PolyPoints, size)
+	for i, pp := range py.polys {
+		for _, p := range pp {
+			ppt := PolyPoint{p, i}
+			py.sorted = append(py.sorted, ppt)
+		}
+	}
+
+	sort.Slice(py.sorted, func(i, j int) bool {
+		return py.sorted[i].Less(py.sorted[j])
+	})
+
 }
 
 // Add a polygon to be searched
@@ -35,11 +62,15 @@ func (py *Finder) Add(id int, pp PPoints) {
 }
 
 // Search returns the id of the polygon that contains the given point
-// If not found, it returns -1
-func (py *Finder) Search(pt [2]float64) int {
+// If polygons are searchable, it returns the id of the closest polygon
+// and the distance away
+//
+// If not found and no search index, it returns -1
+func (py *Finder) Search(pt [2]float64) (int, float64) {
 	// there may be many bboxen that contain the point,
 	// but only one polygon should actually contain it
 	found := -1
+	//var possible []int
 	point := Pair{pt[0], pt[1]}
 	py.tree.Search(pt, pt, func(min, max [2]float64, data interface{}) bool {
 		idx, ok := data.(int)
@@ -51,22 +82,80 @@ func (py *Finder) Search(pt [2]float64) int {
 			found = idx
 			return false
 		}
+		//	possible = append(possible, idx)
 		return true
 	})
 	if found >= 0 {
-		return py.ids[found]
+		return py.ids[found], 0
 	}
-	return found
+	if len(py.sorted) > 0 {
+		//closest := math.MaxFloat64
+		gpt := geo.GeoPoint(pt[0], pt[1])
+		//	for _, idx := range possible {
+		if i, dist := geo.Closest(py.sorted, gpt, 10.0); i < len(py.sorted) {
+			return py.ids[found], dist
+		}
+		//	}
+	}
+	return found, 0
 	//	iter func(min, max [2]float64, data interface{}) bool,
 }
 
 type Pair [2]float64
 
+func (p Pair) Less(x Pair) bool {
+	if p[0] < x[0] {
+		return true
+	} else if p[0] > x[0] {
+		return false
+	} else {
+		// lon is secondary sort
+		return p[1] < x[1]
+	}
+}
+
 // Define Infinite (Using INT_MAX caused overflow problems)
-const INF = math.MaxFloat64
+const farOut = math.MaxFloat64
+
+type PolyPoint struct {
+	P Pair
+	I int
+}
+
+func (p PolyPoint) Less(x PolyPoint) bool {
+	if p.P[0] < x.P[0] {
+		return true
+	} else if p.P[0] > x.P[0] {
+		return false
+	} else {
+		// lon is secondary sort
+		return p.P[1] < x.P[1]
+	}
+}
+
+type PolyPoints []PolyPoint
 
 type PPoints []Pair
 type BBox [2]Pair
+
+func (pp PolyPoints) Len() int {
+	return len(pp)
+}
+
+func (pp PolyPoints) IndexPoint(i int) Point {
+	p := pp[i].P
+	lat := GeoType(p[0])
+	lon := GeoType(p[1])
+	return Point{lat, lon}
+	//	return Point{GeoType(p[0]), GeoType(p[1])}
+	//	return Point{GeoType(p[0]), GeoType(p[1])}
+}
+
+const psize = int(unsafe.Sizeof(PolyPoint{}))
+
+func (pp PolyPoints) Size() int {
+	return psize * len(pp)
+}
 
 func max(a, b float64) float64 {
 	if a > b {
@@ -152,8 +241,8 @@ func (pps PPoints) Contains(p Pair) bool {
 	if len(pps) < 3 {
 		return false
 	}
-	// Create a line segment from p to infinity
-	extreme := Pair{INF, p[1]}
+	// Create a line segment from p to ~infinity
+	extreme := Pair{farOut, p[1]}
 
 	// Count intersections of the above line with sides of polygon
 	var count, i int
