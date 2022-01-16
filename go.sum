@@ -1,7 +1,5 @@
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/paulstuart/geo v0.0.0-20220109203000-4df50e077f36 h1:/0jJPsZOp5tS2wXRCFa9AWHaShDShYC6xHKwX6bdDvU=
-github.com/paulstuart/geo v0.0.0-20220109203000-4df50e077f36/go.mod h1:7v4uXaoV/LGKha2AqAkkQ/rujaMVytfNcip70WBkA3c=
 github.com/paulstuart/geo v0.0.0-20220115040328-d21b5bcdaed6 h1:Ix3/o9nKStiyg3bIiAPvcm6+G2K7an1/Hpfs2Ejko2M=
 github.com/paulstuart/geo v0.0.0-20220115040328-d21b5bcdaed6/go.mod h1:++1nwA7OPSGdxMPhXrvJZwYyWTTU304BGkuoEEi/7Fg=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
