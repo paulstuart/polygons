@@ -61,6 +61,11 @@ func (py *Finder) Add(id int, pp PPoints) {
 	py.ids[idx] = id
 }
 
+// Size returns the number of polygons being searched
+func (py *Finder) Size() int {
+	return len(py.polys)
+}
+
 // Search returns the id of the polygon that contains the given point
 // If polygons are searchable, it returns the id of the closest polygon
 // and the distance away
@@ -89,16 +94,12 @@ func (py *Finder) Search(pt [2]float64) (int, float64) {
 		return py.ids[found], 0
 	}
 	if len(py.sorted) > 0 {
-		//closest := math.MaxFloat64
 		gpt := geo.GeoPoint(pt[0], pt[1])
-		//	for _, idx := range possible {
 		if i, dist := geo.Closest(py.sorted, gpt, 10.0); i < len(py.sorted) {
 			return py.ids[found], dist
 		}
-		//	}
 	}
 	return found, 0
-	//	iter func(min, max [2]float64, data interface{}) bool,
 }
 
 type Pair [2]float64
@@ -146,9 +147,7 @@ func (pp PolyPoints) IndexPoint(i int) Point {
 	p := pp[i].P
 	lat := GeoType(p[0])
 	lon := GeoType(p[1])
-	return Point{lat, lon}
-	//	return Point{GeoType(p[0]), GeoType(p[1])}
-	//	return Point{GeoType(p[0]), GeoType(p[1])}
+	return Point{Lat: lat, Lon: lon}
 }
 
 const psize = int(unsafe.Sizeof(PolyPoint{}))
@@ -291,28 +290,3 @@ func (pp PPoints) BBox() (Pair, Pair) {
 	}
 	return Pair{xMin, yMin}, Pair{xMax, yMax}
 }
-
-/*
-func (pp PPoints) BBox() (Pair, Pair) {
-
-	var xMax, yMax, xMin, yMin float64
-
-	for _, pt := range pp {
-
-		if pt[0] > xMax || xMax == 0.0 {
-			xMax = pt[0]
-		}
-		if pt[1] > yMax || yMax == 0.0 {
-			yMax = pt[1]
-		}
-		if pt[0] < xMin || xMin == 0.0 {
-			xMin = pt[0]
-		}
-		if pt[1] < yMin || yMin == 0.0 {
-			yMin = pt[1]
-		}
-
-	}
-	return Pair{xMin, yMin}, Pair{xMax, yMax}
-}
-*/
