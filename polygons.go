@@ -115,6 +115,10 @@ func (p Pair) Less(x Pair) bool {
 	}
 }
 
+func (p Pair) Point() geo.Point {
+	return geo.Point{geo.GeoType(p[0]), geo.GeoType(p[1])}
+}
+
 // Define Infinite (Using INT_MAX caused overflow problems)
 const farOut = math.MaxFloat64
 
@@ -232,6 +236,12 @@ func doIntersect(p1, q1, p2, q2 Pair) bool {
 	}
 
 	return false // Doesn't fall in any of the above cases
+}
+
+// ContainsPoint returns true if the point is within the polygon
+func (pps PPoints) ContainsPoint(pt geo.Point) bool {
+	pair := Pair{float64(pt.Lat), float64(pt.Lon)}
+	return pps.Contains(pair)
 }
 
 // Returns true if the PPoint p lies inside the polygon[] with n vertices
