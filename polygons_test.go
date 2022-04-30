@@ -156,6 +156,18 @@ func Prep(t Helper) *Finder {
 	return pg
 }
 
+func TestSearchers(t *testing.T) {
+	f := Prep(t)
+	s := NewSearcher[uint](f)
+	pt := Pair{AlaLon, AlaLat}
+	id, dist := s.Search(pt)
+	if id < 0 {
+		t.Fatal("not found")
+	}
+	t.Logf("poly search size: %d", s.sorted.Size())
+	t.Logf("ID: %d DIST: %f", id, dist)
+}
+
 func TestBBox(t *testing.T) {
 	pg := Prep(t)
 	pg.Sort()

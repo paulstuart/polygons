@@ -8,7 +8,7 @@ import (
 
 	"github.com/paulstuart/geo"
 
-	"github.com/tidwall/rtree"
+	"github.com/paulstuart/rtree"
 )
 
 type Point = geo.Point

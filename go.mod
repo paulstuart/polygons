@@ -1,10 +1,18 @@
 module github.com/paulstuart/polygons
 
-go 1.16
+go 1.18
 
 require (
-	github.com/paulstuart/geo v0.0.0-20220305220534-9c5350d289d3
-	github.com/tidwall/mmap v0.2.1 // indirect
-	github.com/tidwall/rtree v1.3.1
-	golang.org/x/sys v0.0.0-20220310020820-b874c991c1a5 // indirect
+	github.com/paulstuart/geo v0.0.0-20220410181904-83d5586f49f5
+	github.com/paulstuart/rtree v1.4.2-0.20220430215825-ea1b5d015948
 )
+
+require (
+	github.com/edsrzf/mmap-go v1.1.0 // indirect
+	github.com/tidwall/geoindex v1.6.1 // indirect
+	github.com/tidwall/mmap v0.2.1 // indirect
+	golang.org/x/exp v0.0.0-20220428152302-39d4317da171 // indirect
+	golang.org/x/sys v0.0.0-20220408201424-a24fb2fb8a0f // indirect
+)
+
+replace github.com/paulstuart/rtree => ../rtree
