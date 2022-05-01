@@ -11,6 +11,7 @@ import (
 
 	"github.com/paulstuart/rtree"
 	"golang.org/x/exp/constraints"
+	"golang.org/x/exp/maps"
 )
 
 // Searcher is read-only collection polygons with associated integer ids
@@ -37,9 +38,32 @@ func NewSearcher[T constraints.Unsigned](f *Finder[T]) Searcher[T] {
 		Sorted: f.sorted,
 		Tree:   rtree.NewReadOnly(f.tree),
 	}
-	fmt.Println("SEARCH TREE SIZE:", reply.Tree.Len())
 	return reply
 }
+
+/**/
+func (s Searcher[T]) Equal(other Searcher[T]) error {
+	if !maps.Equal(s.IDs, other.IDs) {
+		return fmt.Errorf("IDs not equal")
+	}
+	from := other.Tree.Len()
+	to := s.Tree.Len()
+	if from != to {
+		return fmt.Errorf("want: %d -- have: %d\n", to, from)
+	}
+	// same := slices.Compare[PPoints](s.Polys, other.Polys) //; same != 0 {}
+	// if same < 0 {
+	// 	return fmt.Errorf("polys less")
+	// } else if same > 0 {
+	// 	return fmt.Errorf("polys more")
+	// }
+	// if len(s.IDs) != len(other.IDs) {
+	// 	return fmt.Errorf("IDs want %d have %d", len(s.IDs), len(other.IDs))
+	// }
+	return nil
+}
+
+/**/
 
 // Search returns the id of the polygon that contains the given point
 // If polygons are searchable, it returns the id of the closest polygon
@@ -51,13 +75,13 @@ func (s *Searcher[T]) Search(pt [2]float64) (int, float64) {
 	// but only one polygon should actually contain it
 	var found bool
 	var idx T
-	fmt.Println("COUNT:", len(s.IDs))
 	point := Pair{pt[0], pt[1]}
 	s.Tree.Search(pt, pt, func(min, max [2]float64, what T) bool {
-		fmt.Printf("NEW CHECK: %v\n", what)
 		if s.Polys[what].Contains(point) {
 			idx = what
 			found = true
+			// TODO: optionally append `what` to a list
+			//       this entails returning "true" as well (to not stop searching)
 			return false
 		}
 		return true

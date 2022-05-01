@@ -1,7 +1,6 @@
 package polygons
 
 import (
-	"fmt"
 	"math"
 	"sort"
 	"unsafe"
@@ -57,8 +56,8 @@ func (py *Finder[T]) Sort() {
 // Add a polygon to be searched
 func (py *Finder[T]) Add(id int, pp PPoints) {
 	idx := len(py.polys)
-	a, b := pp.BBox()
-	py.tree.Insert(a, b, T(idx))
+	box := pp.BBox()
+	py.tree.Insert(box[0], box[1], T(idx))
 	py.polys = append(py.polys, pp)
 	py.ids[idx] = id
 }
@@ -80,7 +79,6 @@ func (py *Finder[T]) Search(pt [2]float64) (int, float64) {
 	//var possible []int
 	point := Pair{pt[0], pt[1]}
 	py.tree.Search(pt, pt, func(min, max [2]float64, data T) bool {
-		fmt.Println("OLD CHECK:", data)
 		idx := int(data)
 		if py.polys[idx].Contains(point) {
 			found = idx
@@ -277,7 +275,7 @@ func (pps PPoints) Contains(p Pair) bool {
 	return (count & 1) == 1
 }
 
-func (pp PPoints) BBox() (Pair, Pair) {
+func (pp PPoints) BBox() BBox {
 	const max = math.MaxFloat64
 	var xMax, yMax, xMin, yMin float64 = -max, -max, max, max
 
@@ -297,5 +295,5 @@ func (pp PPoints) BBox() (Pair, Pair) {
 		}
 
 	}
-	return Pair{xMin, yMin}, Pair{xMax, yMax}
+	return BBox{{xMin, yMin}, Pair{xMax, yMax}}
 }
