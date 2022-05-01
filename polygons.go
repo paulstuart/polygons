@@ -1,12 +1,13 @@
 package polygons
 
 import (
-	"log"
+	"fmt"
 	"math"
 	"sort"
 	"unsafe"
 
 	"github.com/paulstuart/geo"
+	"golang.org/x/exp/constraints"
 
 	"github.com/paulstuart/rtree"
 )
@@ -19,21 +20,22 @@ type GeoType = geo.GeoType
 // Searching for a polygon containing a point is optimized by creating
 // an RTree of bounding boxes, and then searching candidates within
 // matching bounding boxes
-type Finder struct {
-	tree   rtree.RTree
+type Finder[T constraints.Unsigned] struct {
+	// tree   rtree.Generic[T constraints.Unsigned]
+	tree   rtree.Generic[T]
 	polys  []PPoints
 	ids    map[int]int // key is the polygon index, value is the id
 	sorted PolyPoints
 }
 
 // NewFinder returns a Finder for finding a containing polygon
-func NewFinder() *Finder {
-	return &Finder{
+func NewFinder[T constraints.Unsigned]() *Finder[T] {
+	return &Finder[T]{
 		ids: make(map[int]int),
 	}
 }
 
-func (py *Finder) Sort() {
+func (py *Finder[T]) Sort() {
 	var size int
 	for _, pp := range py.polys {
 		size += len(pp)
@@ -53,16 +55,16 @@ func (py *Finder) Sort() {
 }
 
 // Add a polygon to be searched
-func (py *Finder) Add(id int, pp PPoints) {
+func (py *Finder[T]) Add(id int, pp PPoints) {
 	idx := len(py.polys)
 	a, b := pp.BBox()
-	py.tree.Insert(a, b, idx)
+	py.tree.Insert(a, b, T(idx))
 	py.polys = append(py.polys, pp)
 	py.ids[idx] = id
 }
 
 // Size returns the number of polygons being searched
-func (py *Finder) Size() int {
+func (py *Finder[T]) Size() int {
 	return len(py.polys)
 }
 
@@ -71,18 +73,15 @@ func (py *Finder) Size() int {
 // and the distance away
 //
 // If not found and no search index, it returns -1
-func (py *Finder) Search(pt [2]float64) (int, float64) {
+func (py *Finder[T]) Search(pt [2]float64) (int, float64) {
 	// there may be many bboxen that contain the point,
 	// but only one polygon should actually contain it
 	found := -1
 	//var possible []int
 	point := Pair{pt[0], pt[1]}
-	py.tree.Search(pt, pt, func(min, max [2]float64, data interface{}) bool {
-		idx, ok := data.(int)
-		if !ok {
-			log.Printf("expected type %T but got type %T", idx, data)
-			return true // keep searching
-		}
+	py.tree.Search(pt, pt, func(min, max [2]float64, data T) bool {
+		fmt.Println("OLD CHECK:", data)
+		idx := int(data)
 		if py.polys[idx].Contains(point) {
 			found = idx
 			return false

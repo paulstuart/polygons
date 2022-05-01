@@ -3,9 +3,12 @@ package polygons
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	"testing"
+
+	"golang.org/x/exp/constraints"
 )
 
 const (
@@ -141,35 +144,45 @@ type Helper interface {
 	Fatal(...interface{})
 }
 
-func Prep(t Helper) *Finder {
+func Prep[T constraints.Unsigned](t Helper) *Finder[T] {
 	t.Helper()
 	const filename = sampleCounties
 	var cg []CountyGeo
 	if err := GobLoad(filename, &cg); err != nil {
 		t.Fatal(err)
 	}
-	pg := NewFinder()
+	pg := NewFinder[T]()
 
 	for _, c := range cg {
 		pg.Add(c.GeoID, c.Poly)
 	}
+	fmt.Println("FINDER LEN:", pg.tree.Len())
 	return pg
 }
 
 func TestSearchers(t *testing.T) {
-	f := Prep(t)
-	s := NewSearcher[uint](f)
+	f := Prep[uint](t)
+	s := NewSearcher(f)
 	pt := Pair{AlaLon, AlaLat}
 	id, dist := s.Search(pt)
 	if id < 0 {
 		t.Fatal("not found")
 	}
-	t.Logf("poly search size: %d", s.sorted.Size())
+	t.Logf("poly search size: %d", s.Sorted.Size())
 	t.Logf("ID: %d DIST: %f", id, dist)
+	twin := Echo(s)
+	id, dist = twin.Search(pt)
+	if id < 0 {
+		t.Fatal("not found")
+	}
+	t.Logf("twin search size: %d", s.Sorted.Size())
+	t.Logf("TWIN ID: %d DIST: %f", id, dist)
+	SaveJSON("searcher.json", s)
+
 }
 
 func TestBBox(t *testing.T) {
-	pg := Prep(t)
+	pg := Prep[uint](t)
 	pg.Sort()
 	pt := Pair{AlaLon, AlaLat}
 	id, dist := pg.Search(pt)
@@ -181,7 +194,7 @@ func TestBBox(t *testing.T) {
 }
 
 func BenchmarkBBox(b *testing.B) {
-	pg := Prep(b)
+	pg := Prep[uint](b)
 	pt := Pair{AlaLon, AlaLat}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
