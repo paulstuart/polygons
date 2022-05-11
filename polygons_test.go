@@ -3,8 +3,10 @@ package polygons
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
+	"sort"
 	"testing"
 	"time"
 
@@ -151,11 +153,16 @@ func Prep[T constraints.Unsigned](t Helper) *Finder[T] {
 	if err := GobLoad(filename, &cg); err != nil {
 		t.Fatal(err)
 	}
+	sort.Slice(cg, func(i, j int) bool {
+		return cg[i].GeoID < cg[j].GeoID
+	})
 	pg := NewFinder[T]()
 
 	for _, c := range cg {
 		pg.Add(c.GeoID, c.Poly)
 	}
+	fmt.Printf("PG SIZE:%d\n", pg.tree.Len())
+	// fmt.Printf("PG COUNT:%d\n", pg.tree.Count())
 	return pg
 }
 
@@ -185,7 +192,7 @@ func TestSearchers(t *testing.T) {
 	}
 	elapsed := time.Since(now)
 	t.Logf("TWIN ID: %d DIST: %f (%s)", id, dist, &elapsed)
-	//	SaveJSON("searcher.json", s)
+	//	SaveJSON("testdata/searcher.json", s)
 
 }
 

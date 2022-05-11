@@ -76,8 +76,11 @@ func (s *Searcher[T]) Search(pt [2]float64) (int, float64) {
 	var found bool
 	var idx T
 	point := Pair{pt[0], pt[1]}
+	debugf("SEARCH SIZE: %d\n", s.Tree.Len())
 	s.Tree.Search(pt, pt, func(min, max [2]float64, what T) bool {
+		debugf("WHAT: %v POLYS: %d (%d)\n", what, len(s.Polys), len(s.Polys[what]))
 		if s.Polys[what].Contains(point) {
+			debugf("====> HIT: %v\n", what)
 			idx = what
 			found = true
 			// TODO: optionally append `what` to a list
@@ -87,6 +90,7 @@ func (s *Searcher[T]) Search(pt [2]float64) (int, float64) {
 		return true
 	})
 	if found {
+		debugf("RETURNS: %d/%d\n", s.IDs[int(idx)], len(s.IDs))
 		return int(s.IDs[int(idx)]), 0
 	}
 	if len(s.Sorted) > 0 {
@@ -98,6 +102,15 @@ func (s *Searcher[T]) Search(pt [2]float64) (int, float64) {
 	return -1, 0
 }
 
+func (s *Searcher[T]) Dump() {
+	t := s.Tree
+	for i, r := range t.Rects {
+		fmt.Printf("%2d %v\n", i, r)
+		if i > 1000 {
+			break
+		}
+	}
+}
 func Echo[T any](in T) T {
 	var buf bytes.Buffer
 	err := gob.NewEncoder(&buf).Encode(in)

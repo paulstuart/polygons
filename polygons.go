@@ -20,7 +20,6 @@ type GeoType = geo.GeoType
 // an RTree of bounding boxes, and then searching candidates within
 // matching bounding boxes
 type Finder[T constraints.Unsigned] struct {
-	// tree   rtree.Generic[T constraints.Unsigned]
 	tree   rtree.Generic[T]
 	polys  []PPoints
 	ids    map[int]int // key is the polygon index, value is the id
@@ -34,6 +33,8 @@ func NewFinder[T constraints.Unsigned]() *Finder[T] {
 	}
 }
 
+// Sort creates a sorted array of boxes so that
+// they can be used in a binary search
 func (py *Finder[T]) Sort() {
 	var size int
 	for _, pp := range py.polys {
@@ -57,6 +58,7 @@ func (py *Finder[T]) Sort() {
 func (py *Finder[T]) Add(id int, pp PPoints) {
 	idx := len(py.polys)
 	box := pp.BBox()
+	//	fmt.Printf("%v ==> %v, %v\n", idx, box[0], box[1])
 	py.tree.Insert(box[0], box[1], T(idx))
 	py.polys = append(py.polys, pp)
 	py.ids[idx] = id
@@ -67,6 +69,15 @@ func (py *Finder[T]) Size() int {
 	return len(py.polys)
 }
 
+// func (s *Finder[T]) Dump() {
+// 	t := s.tree
+// 	for i, r := range t.Children() {
+// 		fmt.Printf("%2d %v\n", i, r)
+// 		if i > 10 {
+// 			break
+// 		}
+// 	}
+// }
 // Search returns the id of the polygon that contains the given point
 // If polygons are searchable, it returns the id of the closest polygon
 // and the distance away
@@ -113,7 +124,7 @@ func (p Pair) Less(x Pair) bool {
 }
 
 func (p Pair) Point() geo.Point {
-	return geo.Point{geo.GeoType(p[0]), geo.GeoType(p[1])}
+	return geo.Point{Lat: geo.GeoType(p[0]), Lon: geo.GeoType(p[1])}
 }
 
 // Define Infinite (Using INT_MAX caused overflow problems)
@@ -280,20 +291,18 @@ func (pp PPoints) BBox() BBox {
 	var xMax, yMax, xMin, yMin float64 = -max, -max, max, max
 
 	for _, pt := range pp {
-
-		if pt[0] > xMax {
-			xMax = pt[0]
-		}
-		if pt[1] > yMax {
-			yMax = pt[1]
-		}
 		if pt[0] < xMin {
 			xMin = pt[0]
+		}
+		if pt[0] > xMax {
+			xMax = pt[0]
 		}
 		if pt[1] < yMin {
 			yMin = pt[1]
 		}
-
+		if pt[1] > yMax {
+			yMax = pt[1]
+		}
 	}
 	return BBox{{xMin, yMin}, Pair{xMax, yMax}}
 }
