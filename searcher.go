@@ -8,8 +8,8 @@ import (
 	"os"
 
 	"github.com/paulstuart/geo"
-
 	"github.com/paulstuart/rtree"
+
 	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/maps"
 )

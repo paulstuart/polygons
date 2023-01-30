@@ -1,8 +1,10 @@
 package polygons
 
 import (
+	"fmt"
 	"math"
 	"sort"
+	"strings"
 	"unsafe"
 
 	"github.com/paulstuart/geo"
@@ -168,6 +170,20 @@ func (pp PolyPoints) Size() int {
 	return psize * len(pp)
 }
 
+func (pp PPoints) String() string {
+	var b strings.Builder
+	fmt.Fprint(&b, "[")
+	for i, p := range pp {
+		if i > 0 {
+			fmt.Fprint(&b, ",")
+		}
+		pt := p.Point()
+		fmt.Fprintf(&b, "[%f,%f]", pt.Lat, pt.Lon)
+	}
+	fmt.Fprint(&b, "]")
+	return b.String()
+}
+
 func max(a, b float64) float64 {
 	if a > b {
 		return a
@@ -263,6 +279,9 @@ func (pps PPoints) Contains(p Pair) bool {
 
 	// Count intersections of the above line with sides of polygon
 	var count, i int
+	// defer func() {
+	// 	log.Printf("CONTAINS: %d/%d", count, len(pps))
+	// }()
 	for {
 		next := (i + 1) % len(pps)
 
