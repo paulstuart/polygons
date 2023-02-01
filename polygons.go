@@ -8,9 +8,8 @@ import (
 	"unsafe"
 
 	"github.com/paulstuart/geo"
+	"github.com/tidwall/rtree"
 	"golang.org/x/exp/constraints"
-
-	"github.com/paulstuart/rtree"
 )
 
 type Point = geo.Point
@@ -71,15 +70,16 @@ func (py *Finder[T]) Size() int {
 	return len(py.polys)
 }
 
-// func (s *Finder[T]) Dump() {
-// 	t := s.tree
-// 	for i, r := range t.Children() {
-// 		fmt.Printf("%2d %v\n", i, r)
-// 		if i > 10 {
-// 			break
-// 		}
-// 	}
-// }
+//	func (s *Finder[T]) Dump() {
+//		t := s.tree
+//		for i, r := range t.Children() {
+//			fmt.Printf("%2d %v\n", i, r)
+//			if i > 10 {
+//				break
+//			}
+//		}
+//	}
+//
 // Search returns the id of the polygon that contains the given point
 // If polygons are searchable, it returns the id of the closest polygon
 // and the distance away

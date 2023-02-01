@@ -1,3 +1,6 @@
+//go:build ignore
+// +build ignore
+
 package polygons
 
 import (
@@ -8,8 +11,7 @@ import (
 	"os"
 
 	"github.com/paulstuart/geo"
-	"github.com/paulstuart/rtree"
-
+	"github.com/tidwall/rtree"
 	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/maps"
 )

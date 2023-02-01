@@ -8,7 +8,6 @@ import (
 	"os"
 	"sort"
 	"testing"
-	"time"
 
 	"golang.org/x/exp/constraints"
 )
@@ -166,6 +165,7 @@ func Prep[T constraints.Unsigned](t Helper) *Finder[T] {
 	return pg
 }
 
+/*
 func TestSearchers(t *testing.T) {
 	f := Prep[uint](t)
 	f.Sort()
@@ -195,6 +195,7 @@ func TestSearchers(t *testing.T) {
 	//	SaveJSON("testdata/searcher.json", s)
 
 }
+*/
 
 func TestBBox(t *testing.T) {
 	pg := Prep[uint](t)
