@@ -10,7 +10,7 @@ require (
 
 require (
 	github.com/edsrzf/mmap-go v1.1.0 // indirect
-	github.com/tidwall/geoindex v1.6.1 // indirect
+	github.com/tidwall/geoindex v1.7.0 // indirect
 	github.com/tidwall/mmap v0.2.1 // indirect
 	golang.org/x/sys v0.0.0-20220429233432-b5fbb4746d32 // indirect
 )
