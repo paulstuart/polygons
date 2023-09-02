@@ -12,8 +12,10 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-type Point = geo.Point
-type GeoType = geo.GeoType
+type Float = geo.Float
+
+// type Point = geo.Point
+// type GeoType = geo.GeoType
 
 // Finder is a collection polygons with associated integer ids
 // The ids do not have to be unique (multiple polygons can share an id)
@@ -85,7 +87,7 @@ func (py *Finder[T]) Size() int {
 // and the distance away
 //
 // If not found and no search index, it returns -1
-func (py *Finder[T]) Search(pt [2]float64) (int, float64) {
+func (py *Finder[T]) Search(pt [2]float64) (int, T) {
 	// there may be many bboxen that contain the point,
 	// but only one polygon should actually contain it
 	found := -1
@@ -104,8 +106,10 @@ func (py *Finder[T]) Search(pt [2]float64) (int, float64) {
 		return py.ids[found], 0
 	}
 	if len(py.sorted) > 0 {
-		gpt := geo.GeoPoint(pt[0], pt[1])
-		if i, dist := geo.Closest(py.sorted, gpt, 10.0); i < len(py.sorted) {
+		// gpt := geo.Point[T]{T(lat), T(lon)}
+		gpt := geo.Point[T]{Lat: T(pt[0]), Lon: T(pt[1])}
+		// gpt := geo.GeoPoint[T](pt[0], pt[1])
+		if i, dist := geo.Closest[T](py.sorted, gpt, 10.0); i < len(py.sorted) {
 			return py.ids[found], dist
 		}
 	}
